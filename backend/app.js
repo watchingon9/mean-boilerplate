@@ -1,5 +1,21 @@
 const express = require('express');
+const mongoose = require('mongoose');
+const Post = require('./models/post');
+
 const app = express();
+
+// mongoose
+//   .connect(
+//     'mongodb+srv://reina:reina@cluster0-r21bz.mongodb.net/ng-posts?retryWrites=true&w=majority',
+//     { useNewUrlParser: true }
+//   )
+//   .then(() => console.log('Connected!'));
+
+mongoose
+  .connect('mongodb://127.0.0.1:27017/ng-posts?connectTimeoutMS=6000', {
+    useNewUrlParser: true
+  })
+  .then(() => console.log('Connected!'));
 
 app.use(express.json());
 
@@ -17,21 +33,30 @@ app.use((req, res, next) => {
 });
 
 app.get('/api/posts', (req, res, next) => {
-  const posts = [
-    { id: '123131', title: '123123123', content: '123131' },
-    { id: '123131', title: '123123123', content: '123131' }
-  ];
-  res.status(200).json({
-    message: 'Posts fetched successfully!',
-    posts: posts
+  Post.find().then(docs => {
+    res.status(200).json({
+      message: 'Posts fetched successfully!',
+      posts: docs
+    });
   });
 });
 
 app.post('/api/posts', (req, res, next) => {
-  const post = req.body;
-  console.log(post);
-  res.status(201).json({
-    message: 'Post added successfully!'
+  const post = new Post({
+    title: req.body.title,
+    content: req.body.content
+  });
+  post.save().then(createdPost => {
+    res.status(201).json({
+      message: 'Post added successfully!',
+      postId: createdPost._id
+    });
+  });
+});
+
+app.delete('/api/posts/:id', (req, res, next) => {
+  Post.deleteOne({ _id: req.params.id }).then(result => {
+    res.status(200).json({ message: 'Post deleted!' });
   });
 });
 
