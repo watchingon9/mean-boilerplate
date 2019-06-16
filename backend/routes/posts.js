@@ -12,6 +12,16 @@ router.get('', (req, res, next) => {
   });
 });
 
+router.get('/:id', (req, res, next) => {
+  Post.findOne({ _id: req.params.id }).then(result => {
+    res.status(200).json({
+      _id: result._id,
+      title: result.title,
+      content: result.content
+    });
+  });
+});
+
 router.post('', (req, res, next) => {
   const post = new Post({
     title: req.body.title,
