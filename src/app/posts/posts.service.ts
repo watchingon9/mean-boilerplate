@@ -3,13 +3,14 @@ import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { map } from 'rxjs/operators';
+import { Router } from '@angular/router';
 
 @Injectable({ providedIn: 'root' })
 export class PostsService {
   private posts: Post[] = [];
   private postsUpdated = new Subject<Post[]>(); // Post[] payload
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private router: Router) {}
 
   getPosts() {
     this.http
@@ -35,6 +36,10 @@ export class PostsService {
     return this.postsUpdated.asObservable();
   }
 
+  getPost(id: string) {
+    return { ...this.posts.find(p => p.id === id) };
+  }
+
   addPost(title: string, content: string) {
     const post: Post = { id: null, title, content };
     this.http
@@ -46,6 +51,18 @@ export class PostsService {
         post.id = responseData.postId;
         this.posts.push(post);
         this.postsUpdated.next([...this.posts]); // push new value to emit
+        this.router.navigate(['/']);
+      });
+  }
+
+  updatePost(id: string, title: string, content: string) {
+    const post: Post = { id, title, content };
+    this.http
+      .put('http://localhost:3000/api/posts/' + id, post)
+      .subscribe(() => {
+        this.posts = this.posts.filter(obj => obj.id !== id);
+        this.postsUpdated.next([...this.posts]);
+        this.router.navigate(['/']);
       });
   }
 
