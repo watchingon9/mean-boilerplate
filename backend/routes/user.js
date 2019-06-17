@@ -23,7 +23,7 @@ router.post('/signup', (req, res, next) => {
       })
       .catch(err => {
         res.status(500).json({
-          error: err
+          error: 'Invalid authentication credentials!'
         });
       });
   });
@@ -35,32 +35,31 @@ router.post('/login', (req, res, next) => {
     .then(user => {
       if (!user) {
         return res.status(401).json({
-          message: 'Auth failed'
+          message: 'Unauthorized'
         });
       }
       fetchedUser = user;
-      return bcrypt.compare(req.body.password, user.password);
-    })
-    .then(result => {
-      if (!result) {
-        return res.status(401).json({
-          message: 'Auth failed'
+      bcrypt.compare(req.body.password, user.password).then(result => {
+        if (!result) {
+          return res.status(401).json({
+            message: 'Unauthorized'
+          });
+        }
+        const token = jwt.sign(
+          { email: fetchedUser.email, userId: fetchedUser._id },
+          process.env.JWT_SECRET,
+          { expiresIn: '1h' }
+        );
+        res.status(200).json({
+          token: token,
+          expiresIn: 3600,
+          userId: fetchedUser._id
         });
-      }
-      const token = jwt.sign(
-        { email: fetchedUser.email, userId: fetchedUser._id },
-        process.env.JWT_SECRET,
-        { expiresIn: '1h' }
-      );
-      res.status(200).json({
-        token: token,
-        expiresIn: 3600,
-        userId: fetchedUser._id
       });
     })
     .catch(err => {
       return res.status(401).json({
-        message: 'Auth failed'
+        message: 'Invalid authentication credentials!'
       });
     });
 });
