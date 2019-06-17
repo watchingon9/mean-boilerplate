@@ -1,19 +1,15 @@
 const path = require('path');
 const express = require('express');
 const mongoose = require('mongoose');
+const dotenv = require('dotenv').config();
+
 const postsRoutes = require('./routes/posts');
+const userRoutes = require('./routes/user');
 
 const app = express();
 
-// mongoose
-//   .connect(
-//     'mongodb+srv://reina:reina@cluster0-r21bz.mongodb.net/ng-posts?retryWrites=true&w=majority',
-//     { useNewUrlParser: true }
-//   )
-//   .then(() => console.log('Connected!'));
-
 mongoose
-  .connect('mongodb://127.0.0.1:27017/ng-posts?connectTimeoutMS=6000', {
+  .connect(process.env.DATABASE, {
     useNewUrlParser: true
   })
   .then(() => console.log('Connected!'));
@@ -26,7 +22,7 @@ app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader(
     'Access-Control-Allow-Headers',
-    'Origin, X-Requested-With, Content-Type, Accept'
+    'Origin, X-Requested-With, Content-Type, Accept, Authorization'
   );
   res.setHeader(
     'Access-Control-Allow-Methods',
@@ -36,5 +32,6 @@ app.use((req, res, next) => {
 });
 
 app.use('/api/posts', postsRoutes);
+app.use('/api/user', userRoutes);
 
 module.exports = app;
